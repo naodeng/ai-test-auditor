@@ -21,6 +21,9 @@ flowchart LR
   Findings --> Audit[Classification and scoring]
   Audit --> Text[Text reporter]
   Audit --> Json[JSON reporter]
+  Mutation[Versioned mutation report] --> MutationAdapter[Mutation evidence adapter]
+  MutationAdapter --> Text
+  MutationAdapter --> Json
   Text --> CLI[ata review]
   Json --> CLI
   Source[(Reviewed source)] -. never executed .-> Extractor
@@ -34,12 +37,13 @@ flowchart LR
 | `extractor` | Uses TypeScript AST to extract direct `test` / `it` callbacks and their source location. | No module resolution or callback execution. |
 | `rules/*` | Produces deterministic findings from a single `TestCase`. | Does not infer product intent. |
 | `audit` | Aggregates rules, per-test classifications, FTR, and score. | Does not generate `STRONG`. |
+| `mutation` | Validates an opt-in versioned mutation artifact and derives threshold status. | Does not run a mutation command or change static audit semantics. |
 | `reporters` | Renders a human-readable text projection or the full structured JSON result. | Does not add findings. |
 | `cli` | Parses the command, validates input, renders output, chooses documented exit code. | Does not impose a release policy beyond exit semantics. |
 
 ## Data contracts
 
-`TestCase` preserves test name, file, framework, type, start line, callback source, and body. `Finding` preserves a stable ID, classification, severity, confidence, location, message, and remediation. `AuditResult` is the only reporter input and JSON output.
+`TestCase` preserves test name, file, framework, type, start line, callback source, and body. `Finding` preserves a stable ID, classification, severity, confidence, location, message, and remediation. An optional `MutationReport` preserves its engine label, recorded command, threshold and source, counts, score, and derived threshold status. `AuditResult` is the only reporter input and JSON output.
 
 ## Score model
 

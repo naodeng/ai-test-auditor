@@ -72,4 +72,42 @@ describe('reporters', () => {
   it('renders the complete audit result as parseable JSON', () => {
     expect(JSON.parse(renderJson(result))).toEqual(result);
   });
+
+  it('renders mutation evidence as advisory only', () => {
+    const output = renderText({
+      ...result,
+      mutation: {
+        version: '1',
+        engine: 'stryker',
+        command: 'npx stryker run',
+        threshold: {
+          minimumScore: 90,
+          source: 'stryker.conf.json: thresholds.high',
+        },
+        result: { totalMutants: 10, killed: 8, survived: 2, score: 80 },
+        meetsThreshold: false,
+      },
+    });
+
+    expect(output).toContain('Mutation evidence (advisory only)');
+    expect(output).toContain('Threshold: below (90.00%)');
+    expect(output).toContain('stryker.conf.json: thresholds.high');
+  });
+
+  it('renders a met mutation threshold without making it a static finding', () => {
+    const output = renderText({
+      ...result,
+      mutation: {
+        version: '1',
+        engine: 'generic',
+        command: 'mutation-tool --report report.json',
+        threshold: { minimumScore: 80, source: 'policy.json' },
+        result: { totalMutants: 10, killed: 8, survived: 2, score: 80 },
+        meetsThreshold: true,
+      },
+    });
+
+    expect(output).toContain('Threshold: met (80.00%)');
+    expect(output).toContain('[CRITICAL] [FAKE] UT002');
+  });
 });

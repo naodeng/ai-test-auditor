@@ -15,7 +15,7 @@
 | 0.1   | Deterministic static-rule MVP.                                                      | Rule-level positive/negative tests and CLI fixtures.                                  |
 | 0.2   | More framework extraction and configuration, including explicit parser diagnostics. | Fixture corpus and compatibility matrix.                                              |
 | 0.3   | Optional semantic review interface.                                                 | Versioned prompt/schema, disclosed model and evidence limits, evaluation set.         |
-| 0.4   | Mutation-evidence adapter.                                                          | Reproducible mutation command, threshold provenance, and result schema.               |
+| 0.4   | Delivered: offline mutation-evidence adapter.                                       | Versioned schema, command/threshold provenance, parser and CLI contracts.             |
 | 0.5   | Unit/API/E2E rule expansion and changed-file selection.                             | Rule catalog, false-positive analysis, integration tests.                             |
 | 1.0   | CI/PR quality-gate integrations.                                                    | Opt-in policy configuration, end-to-end CI samples, and documented failure semantics. |
 
@@ -39,6 +39,10 @@
 ## v0.3 semantic-review contract
 
 `--semantic-report <path>` loads a version `1` advisory JSON artifact. Default operation is offline. `semanticProvider` configuration accepts `offline`, `openai`, or `anthropic` plus an environment-variable name and optional model; v0.3 validates configuration but never reads keys or makes network calls.
+
+## v0.4 mutation-evidence contract
+
+`--mutation-report <path>` loads a version `1` offline artifact containing an engine label, recorded command, threshold value and source, plus total/killed/survived mutant counts and a derived score. The command is provenance only and is never executed. The adapter validates counts and score consistency; a score below the recorded threshold is advisory, not a gate, and never changes static results or exit semantics.
 
 ## Non-commitments
 

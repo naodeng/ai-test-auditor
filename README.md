@@ -10,17 +10,46 @@
 
 The governing question is simple: **if production behavior is wrong, can this test actually fail?**
 
-## What v0.1 does
+## What it does
 
 - Scans `.test.ts`, `.spec.ts`, `.test.tsx`, `.spec.tsx`, `.test.js`, `.spec.js`, and `.e2e.ts` files.
 - Extracts direct Jest, Vitest, and Playwright `test` / `it` callbacks with the TypeScript AST.
 - Reports high-confidence deterministic `FAKE` and `WEAK` findings with source locations and remediations.
 - Produces human-readable or JSON output through `ata review`.
 - Ships a standalone, bilingual `test-quality-audit` Skill and evidence-bounded prompts.
+- Loads optional, versioned mutation evidence through `--mutation-report` without running a mutation tool.
 
 ## What v0.1 does not do
 
 It does **not** execute tests, inspect runtime behavior, invoke an LLM, run mutation testing, calculate coverage, validate imports/fixtures, or mark an unflagged test `STRONG`. An unflagged test is `UNASSESSED`.
+
+## v0.4 mutation evidence
+
+Pass a report created by your own mutation workflow:
+
+```bash
+node dist/cli.js review ./tests --mutation-report ./mutation-report.json --format json
+```
+
+```json
+{
+  "version": "1",
+  "engine": "stryker",
+  "command": "npx stryker run",
+  "threshold": {
+    "minimumScore": 80,
+    "source": "stryker.conf.json: thresholds.high"
+  },
+  "result": {
+    "totalMutants": 10,
+    "killed": 8,
+    "survived": 2,
+    "score": 80
+  }
+}
+```
+
+The recorded command and threshold source are required provenance, not instructions: AI Test Auditor never executes the command. A score below `minimumScore` is valid advisory evidence; it never changes static classifications, FTR, Trust Score, or the process exit code.
 
 ## Quick start
 

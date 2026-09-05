@@ -15,7 +15,7 @@
 | 0.1  | 确定性静态规则 MVP。                   | 规则正反例测试与 CLI fixture。                     |
 | 0.2  | 更多框架提取、配置和显式 parser 诊断。 | Fixture 语料和兼容矩阵。                           |
 | 0.3  | 可选的语义评审接口。                   | 版本化 Prompt/schema、披露模型与证据限制、评估集。 |
-| 0.4  | Mutation 证据适配器。                  | 可复现命令、阈值来源和结果 schema。                |
+| 0.4  | 已交付：离线 Mutation 证据适配器。     | 版本化 schema、命令/阈值来源、parser 与 CLI 契约。 |
 | 0.5  | 扩展 Unit/API/E2E 规则和变更文件选择。 | 规则目录、误报分析、集成测试。                     |
 | 1.0  | CI/PR Quality Gate 集成。              | 显式 opt-in 配置、端到端 CI 样例、失败语义。       |
 
@@ -39,6 +39,10 @@
 ## v0.3 语义审计契约
 
 `--semantic-report <path>` 加载 version `1` 的建议性 JSON 产物。默认操作完全离线。`semanticProvider` 配置接受 `offline`、`openai` 或 `anthropic`，以及环境变量名和可选模型；v0.3 只校验配置，绝不读取 Key 或发起网络调用。
+
+## v0.4 Mutation 证据契约
+
+`--mutation-report <path>` 加载 version `1` 的离线产物，其中包含引擎标识、已记录命令、阈值及来源、变异体总数/杀死数/存活数和推导出的分数。命令仅用于溯源，绝不会被执行。适配器校验数量与分数一致性；低于已记录阈值的分数只是建议，不是门禁，绝不改变静态结果或退出码。
 
 ## 不作承诺
 

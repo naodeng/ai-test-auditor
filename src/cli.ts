@@ -5,6 +5,7 @@ import { Command, CommanderError, Option } from 'commander';
 import { auditPath, InputPathError, type ReviewType } from './core/audit.js';
 import { renderJson, renderText } from './reporters.js';
 import { loadSemanticReport } from './core/semantic.js';
+import { MutationReportError, loadMutationReport } from './core/mutation.js';
 
 export interface CliIo {
   readonly stdout: (text: string) => void;
@@ -41,6 +42,10 @@ export async function runCli(
       '--semantic-report <path>',
       'versioned offline semantic-report JSON',
     )
+    .option(
+      '--mutation-report <path>',
+      'versioned offline mutation-evidence JSON',
+    )
     .addOption(
       new Option('--format <format>', 'output format')
         .choices(['text', 'json'])
@@ -58,6 +63,7 @@ export async function runCli(
           readonly format: OutputFormat;
           readonly config?: string;
           readonly semanticReport?: string;
+          readonly mutationReport?: string;
         },
       ) => {
         const result = await auditPath(inputPath, {
@@ -67,7 +73,10 @@ export async function runCli(
         const semantic = options.semanticReport
           ? await loadSemanticReport(options.semanticReport)
           : undefined;
-        const rendered = { ...result, semantic };
+        const mutation = options.mutationReport
+          ? await loadMutationReport(options.mutationReport)
+          : undefined;
+        const rendered = { ...result, semantic, mutation };
         io.stdout(
           options.format === 'json'
             ? renderJson(rendered)
@@ -85,6 +94,10 @@ export async function runCli(
       return error.exitCode === 0 ? 0 : 2;
     }
     if (error instanceof InputPathError) {
+      io.stderr(`Error: ${error.message}\n`);
+      return 2;
+    }
+    if (error instanceof MutationReportError) {
       io.stderr(`Error: ${error.message}\n`);
       return 2;
     }

@@ -59,6 +59,19 @@ export function renderText(result: AuditResult): string {
     }
   }
 
+  if (result.mutation) {
+    const { mutation } = result;
+    lines.push(
+      '',
+      'Mutation evidence (advisory only)',
+      `Engine: ${mutation.engine}`,
+      `Command: ${mutation.command}`,
+      `Score: ${mutation.result.score.toFixed(2)}% (${mutation.result.killed} killed / ${mutation.result.totalMutants} total; ${mutation.result.survived} survived)`,
+      `Threshold: ${mutation.meetsThreshold ? 'met' : 'below'} (${mutation.threshold.minimumScore.toFixed(2)}%)`,
+      `Threshold source: ${mutation.threshold.source}`,
+    );
+  }
+
   lines.push(
     '',
     'Static source analysis only: tests were not executed, and runtime behavior was not assessed.',

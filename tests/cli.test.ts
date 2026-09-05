@@ -190,4 +190,103 @@ describe('ata review', () => {
       },
     });
   });
+
+  it('attaches mutation evidence without changing static exit semantics', async () => {
+    const root = await fixture(
+      "import { expect, test } from 'vitest'; test('unassessed', () => { expect(value).toBe('ok'); });",
+    );
+    const report = join(root, 'mutation.json');
+    await writeFile(
+      report,
+      '{"version":"1","engine":"stryker","command":"npx stryker run","threshold":{"minimumScore":90,"source":"stryker.conf.json: thresholds.high"},"result":{"totalMutants":10,"killed":8,"survived":2,"score":80}}',
+    );
+
+    const invocation = await invoke([
+      'review',
+      root,
+      '--mutation-report',
+      report,
+      '--format',
+      'json',
+    ]);
+
+    expect(invocation.code).toBe(0);
+    expect(JSON.parse(invocation.stdout)).toMatchObject({
+      summary: { unassessed: 1, fake: 0 },
+      mutation: {
+        engine: 'stryker',
+        meetsThreshold: false,
+        result: { score: 80 },
+      },
+    });
+  });
+
+  it('returns 2 for an invalid mutation report', async () => {
+    const root = await fixture(
+      "import { expect, test } from 'vitest'; test('ok', () => { expect(value).toBe('ok'); });",
+    );
+    const report = join(root, 'mutation.json');
+    await writeFile(report, '{}');
+
+    const invocation = await invoke([
+      'review',
+      root,
+      '--mutation-report',
+      report,
+    ]);
+
+    expect(invocation.code).toBe(2);
+    expect(invocation.stderr).toContain('Mutation report');
+  });
+
+  it.each(['{', ''])(
+    'returns 2 for an unreadable mutation report (%j)',
+    async (source) => {
+      const root = await fixture(
+        "import { expect, test } from 'vitest'; test('ok', () => { expect(value).toBe('ok'); });",
+      );
+      const report = join(root, 'mutation.json');
+      if (source) await writeFile(report, source);
+
+      const invocation = await invoke([
+        'review',
+        root,
+        '--mutation-report',
+        report,
+      ]);
+
+      expect(invocation.code).toBe(2);
+      expect(invocation.stderr).toContain('Mutation report cannot be read');
+    },
+  );
+
+  it('never executes the command recorded in mutation evidence', async () => {
+    const root = await fixture(
+      "import { expect, test } from 'vitest'; test('fake', () => { expect(true).toBe(true); });",
+    );
+    const marker = join(root, 'mutation-command-executed');
+    const report = join(root, 'mutation.json');
+    await writeFile(
+      report,
+      JSON.stringify({
+        version: '1',
+        engine: 'generic',
+        command: `node -e "require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'executed')"`,
+        threshold: { minimumScore: 80, source: 'policy.json' },
+        result: { totalMutants: 10, killed: 8, survived: 2, score: 80 },
+      }),
+    );
+
+    const invocation = await invoke([
+      'review',
+      root,
+      '--mutation-report',
+      report,
+    ]);
+
+    expect(invocation.code).toBe(1);
+    await expect(
+      import('node:fs/promises').then(({ access }) => access(marker)),
+    ).rejects.toThrow();
+  });
 });

@@ -13,17 +13,46 @@
 
 核心问题是：**如果生产行为出错，这条测试真的会失败吗？**
 
-## v0.1 能做什么
+## 能做什么
 
 - 扫描 `.test.ts`、`.spec.ts`、`.test.tsx`、`.spec.tsx`、`.test.js`、`.spec.js` 和 `.e2e.ts`。
 - 用 TypeScript AST 提取直接定义的 Jest、Vitest、Playwright `test` / `it` 回调。
 - 输出带源码位置和修复建议的高置信度、确定性 `FAKE` 与 `WEAK` 发现项。
 - 通过 `ata review` 提供文本或 JSON 输出。
 - 内置独立的中英文 `test-quality-audit` Skill 与有证据边界的 Prompt。
+- 通过 `--mutation-report` 读取可选、版本化的变异证据，但不运行 mutation 工具。
 
 ## v0.1 不做什么
 
 它**不会**执行测试、检查运行时行为、调用 LLM、运行 Mutation Testing、计算覆盖率、校验 import / fixture，也不会将未命中的测试标为 `STRONG`。未命中的测试统一是 `UNASSESSED`。
+
+## v0.4 变异证据
+
+传入由你自己的 mutation 工作流产出的报告：
+
+```bash
+node dist/cli.js review ./tests --mutation-report ./mutation-report.json --format json
+```
+
+```json
+{
+  "version": "1",
+  "engine": "stryker",
+  "command": "npx stryker run",
+  "threshold": {
+    "minimumScore": 80,
+    "source": "stryker.conf.json: thresholds.high"
+  },
+  "result": {
+    "totalMutants": 10,
+    "killed": 8,
+    "survived": 2,
+    "score": 80
+  }
+}
+```
+
+记录的命令与阈值来源是必需的溯源信息，不是待执行的指令：AI Test Auditor 绝不会执行该命令。低于 `minimumScore` 的结果仍是有效的建议性证据；它绝不改变静态分类、FTR、Trust Score 或进程退出码。
 
 ## 快速开始
 

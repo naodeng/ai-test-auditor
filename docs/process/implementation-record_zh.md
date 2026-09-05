@@ -2,6 +2,16 @@
 
 # 实施过程记录
 
+## 2026-09-05 — v0.4 离线变异证据
+
+新增位于 `--mutation-report` 后的 version `1` 变异报告适配器。证据必须包含引擎标识、已记录命令、阈值来源、数量和一致的分数。记录的命令绝不会被执行；阈值状态仅供建议，不改变静态发现、分类、FTR、Trust Score 或退出码。
+
+TDD 证据：`npx vitest run tests/core/mutation.test.ts` 先因 `src/core/mutation.ts` 不存在而失败；加入严格 parser 和 loader 后，4 个测试通过。随后 `npx vitest run tests/cli.test.ts tests/reporters.test.ts` 因缺少 CLI 选项和报告段而失败；接入 mutation 附加和输入错误处理后，聚焦套件通过。
+
+最终验证：`npm test` 通过 9 个文件、61 个测试；`npm run lint`、`npm run typecheck`、`npm run format:check` 和 `npm run build` 均通过。`node dist/cli.js review benchmarks --mutation-report /private/tmp/ata-v0.4-mutation-report.json --format json` 输出了 `mutation.meetsThreshold: false`，但由于基准原有的静态 `FAKE` 发现保持不变，仍按预期返回退出码 `1`。
+
+测试补强：新增不支持的版本、两位小数分数取整、格式错误和缺失文件、达标/未达标渲染、携带 mutation 证据的静态 `FAKE` 退出码，以及若被执行将创建标记文件的已记录命令等契约用例。聚焦命令 `npx vitest run tests/core/mutation.test.ts tests/cli.test.ts tests/reporters.test.ts` 通过 28 个测试；标记文件未被创建。
+
 ## 2026-09-04 — v0.3 离线语义接口
 
 新增版本化 semantic-report 加载和可选的 offline/OpenAI/Anthropic provider 配置校验。Provider 仅是配置：v0.3 不读取凭证，也不通过网络发送被审计源码。语义推断仅供参考，不改变静态发现、分类、分数或退出码。
@@ -75,7 +85,7 @@ v0.2 增加嵌套套件标签、参数化 Jest/Vitest 测试提取、解析诊�
 
 - 工具不执行被审计测试，也不验证 import、fixture、运行时结果、覆盖率或产品行为。
 - 当前提取器只支持直接 `test` / `it` 回调，不支持每一种框架 DSL 变体。
-- LLM 评审、变异测试证据和 CI gate 强制执行仍属于路线图，不是已实现功能。
+- LLM 执行、变异命令执行和 CI gate 强制执行仍属于路线图，不是已实现功能。
 
 ## 过程文档政策
 

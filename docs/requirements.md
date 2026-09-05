@@ -30,7 +30,7 @@ Provide a local CLI that identifies a deliberately small set of high-confidence,
 ## Out of scope
 
 - Executing a test, importing test code, resolving runtime dependencies, or proving a test is runnable.
-- LLM assessment, semantic intent inference, mutation testing, coverage analysis, flaky-test detection, or GitHub PR annotations.
+- LLM assessment, semantic intent inference, running mutation testing, coverage analysis, flaky-test detection, or GitHub PR annotations. A supplied mutation-evidence artifact may be validated and displayed, but is not executed or treated as a gate.
 - A `STRONG` classification based on absence of static findings.
 - Framework support beyond the documented direct Jest/Vitest/Playwright callback conventions.
 

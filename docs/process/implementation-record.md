@@ -1,5 +1,15 @@
 # Implementation Record
 
+## 2026-09-05 — v0.4 offline mutation evidence
+
+Added a version `1` mutation-report adapter behind `--mutation-report`. Evidence requires an engine label, recorded command, threshold provenance, counts, and score consistency. The recorded command is never executed; threshold status is advisory and does not alter static findings, classifications, FTR, Trust Score, or exit codes.
+
+TDD evidence: `npx vitest run tests/core/mutation.test.ts` first failed because `src/core/mutation.ts` did not exist, then passed with 4 tests after the strict parser and loader were added. `npx vitest run tests/cli.test.ts tests/reporters.test.ts` then failed for the absent CLI option and reporter section, then the focused suite passed with the mutation attachment and input-error handling.
+
+Final validation: `npm test` passed 9 files and 61 tests; `npm run lint`, `npm run typecheck`, `npm run format:check`, and `npm run build` passed. `node dist/cli.js review benchmarks --mutation-report /private/tmp/ata-v0.4-mutation-report.json --format json` emitted `mutation.meetsThreshold: false` and retained the benchmark's expected exit code `1` because its pre-existing static `FAKE` findings remain unchanged.
+
+Coverage strengthening: added contract cases for unsupported versions, two-decimal score rounding, malformed and missing files, met and below-threshold rendering, a static `FAKE` exit code with mutation evidence, and a recorded command that would create a marker if executed. The focused command `npx vitest run tests/core/mutation.test.ts tests/cli.test.ts tests/reporters.test.ts` passed 28 tests; the marker was not created.
+
 ## 2026-09-04 — v0.3 offline semantic interface
 
 Added versioned semantic-report loading and optional offline/OpenAI/Anthropic provider configuration validation. Providers are configuration-only: v0.3 neither reads credentials nor sends reviewed source over the network. Semantic inferences are advisory and do not alter static findings, classifications, scores, or exit codes.
@@ -78,7 +88,7 @@ Final review identified narrow correctness and documentation gaps. The correctiv
 
 - The tool does not run reviewed tests or validate their imports, fixtures, runtime results, coverage, or product behavior.
 - The current extractor targets direct `test`/`it` callbacks rather than every framework DSL variant.
-- Future LLM review, mutation evidence, and CI-gate enforcement remain roadmap items, not implemented features.
+- Future LLM execution, mutation-command execution, and CI-gate enforcement remain roadmap items, not implemented features.
 
 ## Process-document policy
 
