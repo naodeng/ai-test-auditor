@@ -42,7 +42,7 @@ AI 辅助开发可能产生能编译、能运行、甚至提高覆盖率，却�
 - 执行测试、import 测试代码、解析运行时依赖，或证明测试可以运行。
 - 执行 LLM、生成语义意图推断、运行 Mutation Testing、覆盖率、脆弱测试检测或 GitHub PR 注释。可以校验和显示外部提供的变异证据产物，但不会执行它，也不会将其作为门禁。
 - 因静态规则未命中而标记 `STRONG`。
-- 文档所述直接 Jest/Vitest/Playwright 回调之外的框架支持。
+- 文档所述直接 Jest/Vitest/Playwright/Node `node:test` 回调之外的框架支持。
 
 ## 分类契约
 

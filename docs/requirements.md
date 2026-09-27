@@ -42,7 +42,7 @@ Provide a local CLI that identifies a deliberately small set of high-confidence,
 - Executing a test, importing test code, resolving runtime dependencies, or proving a test is runnable.
 - Executing an LLM, generating semantic intent inferences, running mutation testing, coverage analysis, flaky-test detection, or GitHub PR annotations. A supplied mutation-evidence artifact may be validated and displayed, but is not executed or treated as a gate.
 - A `STRONG` classification based on absence of static findings.
-- Framework support beyond the documented direct Jest/Vitest/Playwright callback conventions.
+- Framework support beyond the documented direct Jest/Vitest/Playwright/Node `node:test` callback conventions.
 
 ## Classification contract
 

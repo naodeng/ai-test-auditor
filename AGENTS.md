@@ -6,7 +6,7 @@
 
 ## Scope and boundaries
 
-- Supported source conventions: Jest, Vitest, and Playwright `test` / `it` callbacks in JS/TS/TSX files.
+- Supported source conventions: Jest, Vitest, Playwright, and Node `node:test` `test` / `it` callbacks in JS/TS/TSX files. Node tests may use recognized `node:assert` calls as native assertions.
 - Do not import, execute, or evaluate reviewed test source.
 - Findings require a stable rule ID, classification, severity, confidence, source location, bounded message, remediation, and regression test.
 - `FAKE` is reserved for deterministic syntactic evidence. Context-dependent hints must be `WEAK` or omitted.

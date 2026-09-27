@@ -57,7 +57,9 @@ describe('reporters', () => {
     expect(output).toContain('静态审计项：1 总计，1 已评估');
     expect(output).toContain('虚假测试');
     expect(output).toContain('仅静态源码分析');
-    expect(output).toContain('UT002：matcher 两侧比较相同的基本字面量。');
+    expect(output).toContain(
+      'UT002：matcher 或 Node 原生比较断言两侧比较相同的基本字面量。',
+    );
   });
 
   it('warns that no findings do not make tests strong', () => {
@@ -154,6 +156,12 @@ describe('reporters', () => {
             framework: 'playwright',
             type: 'e2e',
           },
+          {
+            ...result.tests[0]!,
+            filePath: '/repo/native.test.js',
+            framework: 'node-test',
+            type: 'unknown',
+          },
         ],
         findings: [
           {
@@ -171,6 +179,7 @@ describe('reporters', () => {
     expect(output).toContain('按框架静态口径');
     expect(output).toContain('Vitest · 静态回调 1 · 发现项 0');
     expect(output).toContain('Playwright · 静态回调 1 · 发现项 1');
+    expect(output).toContain('Node 内置测试 · 静态回调 1 · 发现项 0');
     expect(output).toContain('运行器注册实例未执行、未统计。');
   });
 

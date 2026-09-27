@@ -1,6 +1,6 @@
 ---
 name: test-quality-audit
-description: Use when reviewing JavaScript or TypeScript unit, API, or Playwright test source for false-confidence patterns, ineffective assertions, or static test-quality risks.
+description: Use when reviewing JavaScript or TypeScript unit, API, Playwright, or Node `node:test` source for false-confidence patterns, ineffective assertions, or static test-quality risks.
 ---
 
 # Test Quality Audit
@@ -40,4 +40,4 @@ Return, in order: scope and evidence, deterministic findings, review questions, 
 
 The current v1.2 catalog contains 10 Unit, 10 API, and 10 E2E rules plus `PARSER001`. Use `ata benchmark` or `npm run benchmark` to check versioned source fixtures and exact expected rule/classification identities. Benchmark output is fixture conformance evidence only; it is not runtime quality, coverage, mutation, precision, recall, or release evidence.
 
-`--locale en` and `--locale zh-CN` localize human-readable text and HTML. Audit config accepts legacy files without a version and normalizes them to version `1`, but rejects unknown fields, empty patterns, and unsupported providers. JSON remains the stable machine-facing schema.
+`--locale en` and `--locale zh-CN` localize human-readable text and HTML. Direct Node `node:test` callbacks are identified as `node-test`; recognized Node `assert` calls count as native assertions, but the auditor still does not execute them. Audit config accepts legacy files without a version and normalizes them to version `1`, but rejects unknown fields, empty patterns, and unsupported providers. JSON remains the stable machine-facing schema.

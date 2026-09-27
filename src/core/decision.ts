@@ -10,6 +10,7 @@ import type {
   DecisionReasonCode,
   Finding,
   Framework,
+  NativeAssertionBinding,
   Severity,
   TestCase,
   TestType,
@@ -41,6 +42,7 @@ const frameworks: readonly Framework[] = [
   'jest',
   'vitest',
   'playwright',
+  'node-test',
   'unknown',
 ];
 const testTypes: readonly TestType[] = ['unit', 'api', 'e2e', 'unknown'];
@@ -127,8 +129,18 @@ function parseTestCase(value: unknown): TestCase {
   const testCase = object(value, 'Decision test case');
   exactKeys(
     testCase,
-    ['filePath', 'name', 'framework', 'type', 'line', 'source', 'body'],
+    [
+      'filePath',
+      'name',
+      'framework',
+      'type',
+      'line',
+      'source',
+      'body',
+      'nativeAssertionBindings',
+    ],
     'Decision test case',
+    ['nativeAssertionBindings'],
   );
   if (
     !nonEmpty(testCase.filePath) ||
@@ -141,6 +153,10 @@ function parseTestCase(value: unknown): TestCase {
   ) {
     throw new DecisionError('Decision test case is invalid.');
   }
+  const nativeAssertionBindings =
+    testCase.nativeAssertionBindings === undefined
+      ? undefined
+      : parseNativeAssertionBindings(testCase.nativeAssertionBindings);
   return {
     filePath: testCase.filePath,
     name: testCase.name,
@@ -149,7 +165,63 @@ function parseTestCase(value: unknown): TestCase {
     line: testCase.line,
     source: testCase.source,
     body: testCase.body,
+    ...(nativeAssertionBindings ? { nativeAssertionBindings } : {}),
   };
+}
+
+function parseNativeAssertionBindings(
+  value: unknown,
+): readonly NativeAssertionBinding[] {
+  if (!Array.isArray(value)) {
+    throw new DecisionError(
+      'Decision test case native assertion bindings must be an array.',
+    );
+  }
+
+  return value.map((candidate, index) => {
+    const binding = object(
+      candidate,
+      `Decision native assertion binding ${index}`,
+    );
+    if (binding.kind === 'namespace') {
+      exactKeys(
+        binding,
+        ['localName', 'kind'],
+        `Decision native assertion binding ${index}`,
+      );
+      if (!nonEmpty(binding.localName)) {
+        throw new DecisionError(
+          `Decision native assertion binding ${index} is invalid.`,
+        );
+      }
+      return {
+        localName: binding.localName,
+        kind: 'namespace',
+      };
+    }
+
+    if (binding.kind === 'method') {
+      exactKeys(
+        binding,
+        ['localName', 'kind', 'methodName'],
+        `Decision native assertion binding ${index}`,
+      );
+      if (!nonEmpty(binding.localName) || !nonEmpty(binding.methodName)) {
+        throw new DecisionError(
+          `Decision native assertion binding ${index} is invalid.`,
+        );
+      }
+      return {
+        localName: binding.localName,
+        kind: 'method',
+        methodName: binding.methodName,
+      };
+    }
+
+    throw new DecisionError(
+      `Decision native assertion binding ${index} is invalid.`,
+    );
+  });
 }
 
 function parseFinding(value: unknown): Finding {

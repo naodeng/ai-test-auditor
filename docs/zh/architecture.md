@@ -62,7 +62,7 @@ flowchart LR
 
 ## 数据契约
 
-`TestCase` 保留名称、文件、框架、类型、起始行、回调源码和函数体。`Finding` 保留稳定 ID、分类、严重性、置信度、位置、信息和修复建议。可选 `MutationReport` 保留引擎标识、已记录命令、阈值及来源、数量、分数和推导出的阈值状态。可选 `PolicyEvaluation` 保留建议性策略标识、禁用规则 ID 和禁用/活跃发现项计数。`AuditResult` 是唯一报告输入与 JSON 输出。
+`TestCase` 保留名称、文件、框架、类型、起始行、回调源码和函数体。Node 测试还可以保留静态声明的 `node:assert` 绑定，使审计器无需模块解析或执行即可识别直接具名 import 和 namespace 别名。`Finding` 保留稳定 ID、分类、严重性、置信度、位置、信息和修复建议。可选 `MutationReport` 保留引擎标识、已记录命令、阈值及来源、数量、分数和推导出的阈值状态。可选 `PolicyEvaluation` 保留建议性策略标识、禁用规则 ID 和禁用/活跃发现项计数。`AuditResult` 是唯一报告输入与 JSON 输出。
 
 ## 评分
 

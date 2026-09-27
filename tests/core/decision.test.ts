@@ -74,6 +74,33 @@ describe('CI-neutral advisory decision', () => {
     });
   });
 
+  it('accepts Node test framework snapshots', () => {
+    const envelope = {
+      ...fakeEnvelope,
+      audit: {
+        ...fakeEnvelope.audit,
+        tests: [
+          {
+            ...fakeEnvelope.audit.tests[0],
+            framework: 'node-test',
+            type: 'unknown',
+            nativeAssertionBindings: [
+              { localName: 'equal', kind: 'method', methodName: 'strictEqual' },
+            ],
+          },
+        ],
+      },
+    };
+
+    expect(parseDecisionEnvelope(envelope).audit.tests[0]).toMatchObject({
+      framework: 'node-test',
+      type: 'unknown',
+      nativeAssertionBindings: [
+        { localName: 'equal', kind: 'method', methodName: 'strictEqual' },
+      ],
+    });
+  });
+
   it.each([
     { ...fakeEnvelope, version: '2' },
     { ...fakeEnvelope, extra: true },

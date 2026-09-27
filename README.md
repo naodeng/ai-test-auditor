@@ -14,7 +14,7 @@ Tests can look complete while failing to verify observable behavior. This tool s
 
 ## Core capabilities and limits
 
-It extracts direct Jest, Vitest, and Playwright callbacks and reports source-located `FAKE` or `WEAK` findings with remediation. It supports changed-file selection, optional mutation evidence, advisory policy, baseline comparison, advisory decision projection, and an explicit opt-in policy gate.
+It extracts direct Jest, Vitest, Playwright, and Node `node:test` callbacks. Node tests can use recognized native `node:assert` calls as assertions. It reports source-located `FAKE` or `WEAK` findings with remediation and supports changed-file selection, optional mutation evidence, advisory policy, baseline comparison, advisory decision projection, and an explicit opt-in policy gate.
 
 It does not run tests, inspect runtime behavior, invoke an LLM, calculate coverage, or infer production-code-to-test relevance. An unflagged test is `UNASSESSED`, never `STRONG`. FTR and Trust Score are prioritization aids, not release decisions.
 

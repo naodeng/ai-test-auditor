@@ -14,7 +14,7 @@ AI Test Auditor 是本地优先、纯源码审计的 JavaScript 与 TypeScript �
 
 ## 核心能力与明确限制
 
-它提取直接定义的 Jest、Vitest、Playwright 回调，并输出带位置与修复建议的 `FAKE` 或 `WEAK` 发现项。它支持变更文件选择、可选 mutation 证据、建议性策略、基线比较、建议性决策投影和显式 opt-in 策略门禁。
+它提取直接定义的 Jest、Vitest、Playwright 和 Node `node:test` 回调；Node 测试可以将可识别的 `node:assert` 调用作为断言。工具输出带位置与修复建议的 `FAKE` 或 `WEAK` 发现项，并支持变更文件选择、可选 mutation 证据、建议性策略、基线比较、建议性决策投影和显式 opt-in 策略门禁。
 
 它不运行测试、不检查运行时行为、不调用 LLM、不计算覆盖率，也不推断生产代码与测试关系。未命中规则的测试是 `UNASSESSED`，不是 `STRONG`。FTR 和 Trust Score 只是排序辅助，不是发布结论。
 

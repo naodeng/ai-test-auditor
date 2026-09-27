@@ -6,6 +6,7 @@ import {
   extractTests,
   extractTestsWithDiagnostics,
 } from '../../src/core/extractor';
+import { evaluateRules } from '../../src/core/rule-engine';
 
 const fixtureDirectories: string[] = [];
 
@@ -82,6 +83,39 @@ describe('extractTests', () => {
           "async ({ page }) => {\n  await page.goto('/checkout');\n  await expect(page).toHaveTitle('Checkout');\n}",
         body: "{\n  await page.goto('/checkout');\n  await expect(page).toHaveTitle('Checkout');\n}",
       },
+    ]);
+  });
+
+  it('identifies Node test callbacks as Node native tests', async () => {
+    const filePath = await createFixture(
+      'native.test.js',
+      "import test from 'node:test';\nimport assert from 'node:assert/strict';\n\ntest('adds numbers', () => {\n  assert.strictEqual(1 + 2, 3);\n});\n",
+    );
+
+    expect(extractTests(filePath)).toMatchObject([
+      {
+        name: 'adds numbers',
+        framework: 'node-test',
+        type: 'unknown',
+      },
+    ]);
+  });
+
+  it('preserves direct Node assertion bindings for rule recognition', async () => {
+    const filePath = await createFixture(
+      'named-native.test.js',
+      "import test from 'node:test';\nimport { strictEqual as equal } from 'node:assert/strict';\n\ntest('adds numbers', () => {\n  equal(3, 3);\n});\n",
+    );
+
+    const [testCase] = extractTests(filePath);
+
+    expect(testCase).toMatchObject({
+      nativeAssertionBindings: [
+        { localName: 'equal', kind: 'method', methodName: 'strictEqual' },
+      ],
+    });
+    expect(evaluateRules(testCase!).map((finding) => finding.ruleId)).toEqual([
+      'UT002',
     ]);
   });
 

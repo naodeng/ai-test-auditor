@@ -1,6 +1,6 @@
 ---
 name: test-quality-audit-zh
-description: 当需要审查 JavaScript 或 TypeScript Unit、API、Playwright 测试源码中的虚假信心模式、无效断言或静态测试质量风险时使用。
+description: 当需要审查 JavaScript 或 TypeScript Unit、API、Playwright 或 Node `node:test` 测试源码中的虚假信心模式、无效断言或静态测试质量风险时使用。
 ---
 
 # 测试质量审计
@@ -40,4 +40,4 @@ description: 当需要审查 JavaScript 或 TypeScript Unit、API、Playwright �
 
 当前 v1.2 目录包含 10 条 Unit、10 条 API、10 条 E2E 规则以及 `PARSER001`。使用 `ata benchmark` 或 `npm run benchmark` 检查版本化源码 fixture 与精确的 rule/classification 身份。benchmark 输出只表示 fixture 一致性，不是运行时质量、覆盖率、mutation、precision、recall 或发布证据。
 
-`--locale en` 与 `--locale zh-CN` 本地化人类可读的 text 和 HTML。审计配置兼容没有 version 的旧文件并规范化为 version `1`，但会拒绝未知字段、空模式和不支持的 provider。JSON 继续是稳定的机器接口 schema。
+`--locale en` 与 `--locale zh-CN` 本地化人类可读的 text 和 HTML。直接 Node `node:test` 回调会被识别为 `node-test`；可识别的 Node `assert` 调用会计为原生断言，但审计器仍不会执行它们。审计配置兼容没有 version 的旧文件并规范化为 version `1`，但会拒绝未知字段、空模式和不支持的 provider。JSON 继续是稳定的机器接口 schema。

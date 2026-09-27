@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import * as ts from 'typescript';
+import { extractNativeAssertionBindings } from './native-assertions.js';
 import type {
   ExtractionResult,
   Framework,
@@ -12,6 +13,7 @@ const frameworkModules: Readonly<Record<string, Framework>> = {
   '@jest/globals': 'jest',
   '@playwright/test': 'playwright',
   jest: 'jest',
+  'node:test': 'node-test',
   vitest: 'vitest',
 };
 
@@ -67,6 +69,7 @@ export function extractTestsWithDiagnostics(
     scriptKind(absolutePath),
   );
   const framework = inferFramework(sourceFile);
+  const nativeAssertionBindings = extractNativeAssertionBindings(sourceFile);
   const tests: TestCase[] = [];
 
   function visit(node: ts.Node): void {
@@ -86,6 +89,9 @@ export function extractTestsWithDiagnostics(
             ).line + 1,
           source: callback.getText(sourceFile),
           body: callback.body.getText(sourceFile),
+          ...(nativeAssertionBindings.length > 0
+            ? { nativeAssertionBindings }
+            : {}),
         });
       }
     }

@@ -1,15 +1,21 @@
 import * as ts from 'typescript';
+import {
+  isNodeComparisonMethod,
+  nodeAssertionName,
+} from '../core/native-assertions.js';
 import type {
   Classification,
   Confidence,
   Finding,
+  Framework,
+  NativeAssertionBinding,
   Severity,
   TestCase,
 } from '../core/types.js';
 
 export interface Assertion {
   readonly matcher: ts.CallExpression;
-  readonly expected: ts.Expression;
+  readonly expected: ts.Expression | undefined;
   readonly actual: ts.Expression;
   readonly matcherName: string;
 }
@@ -66,6 +72,21 @@ export function expectCalls(sourceFile: ts.SourceFile): ts.CallExpression[] {
   return calls;
 }
 
+export function nativeAssertionCalls(
+  sourceFile: ts.SourceFile,
+  framework: Framework = 'unknown',
+  bindings: readonly NativeAssertionBinding[] = [],
+): ts.CallExpression[] {
+  if (framework !== 'node-test') return [];
+
+  const calls: ts.CallExpression[] = [];
+  visitNodes(sourceFile, (node) => {
+    if (!ts.isCallExpression(node)) return;
+    if (nodeAssertionName(node, bindings)) calls.push(node);
+  });
+  return calls;
+}
+
 export function bareExpectCalls(
   sourceFile: ts.SourceFile,
 ): ts.CallExpression[] {
@@ -101,7 +122,11 @@ export function assertionCountGuards(
   return guards;
 }
 
-export function assertions(sourceFile: ts.SourceFile): Assertion[] {
+export function assertions(
+  sourceFile: ts.SourceFile,
+  framework: Framework = 'unknown',
+  bindings: readonly NativeAssertionBinding[] = [],
+): Assertion[] {
   const found: Assertion[] = [];
 
   visitNodes(sourceFile, (node) => {
@@ -112,25 +137,36 @@ export function assertions(sourceFile: ts.SourceFile): Assertion[] {
       return;
     }
 
-    const expected = node.expression.expression;
+    const expectedCall = node.expression.expression;
     if (
-      !ts.isCallExpression(expected) ||
-      !ts.isIdentifier(expected.expression) ||
-      expected.expression.text !== 'expect'
+      !ts.isCallExpression(expectedCall) ||
+      !ts.isIdentifier(expectedCall.expression) ||
+      expectedCall.expression.text !== 'expect'
     ) {
       return;
     }
 
-    const actual = expected.arguments[0];
+    const actual = expectedCall.arguments[0];
     if (!actual) return;
 
     found.push({
       matcher: node,
-      expected,
+      expected: node.arguments[0],
       actual,
       matcherName: node.expression.name.text,
     });
   });
+
+  for (const matcher of nativeAssertionCalls(sourceFile, framework, bindings)) {
+    const matcherName = nodeAssertionName(matcher, bindings);
+    if (!matcherName || !isNodeComparisonMethod(matcherName)) continue;
+
+    const actual = matcher.arguments[0];
+    const expected = matcher.arguments[1];
+    if (!actual || !expected) continue;
+
+    found.push({ matcher, expected, actual, matcherName });
+  }
 
   return found;
 }
@@ -139,9 +175,14 @@ export function hasOnlyZeroArgumentMatchers(
   sourceFile: ts.SourceFile,
   matcherNames: readonly string[],
   actualMatches: (actual: ts.Expression) => boolean = () => true,
+  framework?: Framework,
+  bindings?: readonly NativeAssertionBinding[],
 ): boolean {
-  const direct = expectCalls(sourceFile);
-  const found = assertions(sourceFile);
+  const direct = [
+    ...expectCalls(sourceFile),
+    ...nativeAssertionCalls(sourceFile, framework, bindings),
+  ];
+  const found = assertions(sourceFile, framework, bindings);
   return (
     direct.length > 0 &&
     direct.length === found.length &&
@@ -157,9 +198,14 @@ export function hasOnlyZeroArgumentMatchers(
 export function hasOnlyMatchers(
   sourceFile: ts.SourceFile,
   matcherNames: readonly string[],
+  framework?: Framework,
+  bindings?: readonly NativeAssertionBinding[],
 ): boolean {
-  const direct = expectCalls(sourceFile);
-  const found = assertions(sourceFile);
+  const direct = [
+    ...expectCalls(sourceFile),
+    ...nativeAssertionCalls(sourceFile, framework, bindings),
+  ];
+  const found = assertions(sourceFile, framework, bindings);
   return (
     direct.length > 0 &&
     direct.length === found.length &&

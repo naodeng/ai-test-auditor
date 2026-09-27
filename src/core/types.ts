@@ -5,9 +5,21 @@ export type Severity = 'CRITICAL' | 'WARNING' | 'INFO';
 
 export type TestType = 'unit' | 'api' | 'e2e' | 'unknown';
 
-export type Framework = 'jest' | 'vitest' | 'playwright' | 'unknown';
+export type Framework =
+  'jest' | 'vitest' | 'playwright' | 'node-test' | 'unknown';
 
 export type Confidence = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export type NativeAssertionBinding =
+  | {
+      readonly localName: string;
+      readonly kind: 'namespace';
+    }
+  | {
+      readonly localName: string;
+      readonly kind: 'method';
+      readonly methodName: string;
+    };
 
 export interface TestCase {
   readonly filePath: string;
@@ -17,6 +29,7 @@ export interface TestCase {
   readonly line: number;
   readonly source: string;
   readonly body: string;
+  readonly nativeAssertionBindings?: readonly NativeAssertionBinding[];
 }
 
 export interface ParserDiagnostic {

@@ -52,6 +52,36 @@ describe('evaluateRules', () => {
     );
   });
 
+  it('recognizes Node native assertions as assertions', () => {
+    const nodeTest = testCase('{ assert.strictEqual(3, 3); }', {
+      framework: 'node-test',
+      type: 'unknown',
+    });
+
+    expect(ids(nodeTest)).not.toContain('UT001');
+    expect(ids(nodeTest)).toContain('UT002');
+  });
+
+  it('preserves Node native actual and expected argument order', () => {
+    const nodeTest = testCase('{ assert.strictEqual(add(1, 2), 3); }', {
+      framework: 'node-test',
+      type: 'unknown',
+    });
+
+    expect(ids(nodeTest)).not.toContain('UT002');
+    expect(ids(nodeTest)).not.toContain('UT003');
+    expect(ids(nodeTest)).not.toContain('UT011');
+  });
+
+  it('does not treat a same-named application function as a Node assertion', () => {
+    const nodeTest = testCase('{ fail(); }', {
+      framework: 'node-test',
+      type: 'unknown',
+    });
+
+    expect(ids(nodeTest)).toContain('UT001');
+  });
+
   it('does not report UT001 for a normal TSX test callback with JSX before expect', () => {
     expect(
       ids(

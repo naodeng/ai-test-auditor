@@ -10,7 +10,7 @@ You are a test-quality reviewer. Audit only the JavaScript/TypeScript test sourc
 
 ```text
 <test_context>
-framework: <jest|vitest|playwright|unknown>
+framework: <jest|vitest|playwright|node-test|unknown>
 test_type: <unit|api|e2e|unknown>
 source: <paste source>
 optional_cli_report: <paste JSON or text output>

@@ -113,3 +113,23 @@ GitHub Actions run `35501372111` 的 checkout、依赖安装和 build 均通过�
 v1.2.1 是 v1.2.0 的补丁发布，包含 advisory GitHub Actions workflow 退出语义修复：发现项仍写入 Job Summary，不再让 advisory workflow 因静态 FAKE/WEAK 结果失败；无效输入 `2` 与显式 gate 语义保持不变。
 
 发布提交前通过 23 个测试文件、239 个测试，lint、typecheck、format、build、benchmark（3/3）和 `git diff --check`；`package.json` 与 `package-lock.json` 同步为 `1.2.1`。
+
+## 2026-09-27 Node 原生断言识别
+
+背景决策：Node `node:test` 回调纳入框架识别，框架值为 `node-test`；直接 `assert(...)`、`assert.method(...)` 以及从 `node:assert` 静态声明的绑定作为可识别的原生断言。比较型原生断言复用 `UT002`、`UT003`、`UT011` 的既有静态规则；Node 测试仍保持 `type: "unknown"`，因为 `node:test` 本身不能证明测试属于 unit、API 或集成类型。封装和间接 helper 不作推断，保持 `UNASSESSED`；审计器不 import、执行或解析运行时依赖。
+
+验证证据：先为 Node 框架提取和 `assert.strictEqual` 断言补充回归测试并观察到聚焦 RED（2 条失败）；最小实现后聚焦 GREEN 为 4 个测试文件、86 个测试通过。复核参数顺序时又补充“独立 actual/expected 不应误报”的回归测试并观察到 1 条 RED，修正后聚焦 GREEN 为 4 个测试文件、87 个测试通过。随后增加同名业务函数反例，观察到 1 条 RED 后收紧为直接 `assert` 调用，聚焦 GREEN 为 1 个测试文件、48 个测试通过。最终 `npm test` 通过 23 个测试文件、244 个测试，`npm run lint`、`npm run typecheck`、`npm run build`、`npm run benchmark`（3/3）和 `git diff --check` 通过；本次变更文件的 Prettier 检查通过。完整 `npm run format:check` 仍仅被既有未跟踪的 `.impeccable/hook.cache.json` 阻断，本次变更文件没有格式问题。
+
+实际审计验证：构建后的 `node dist/cli.js review /Users/nao.deng/awsomeCode/dsh-qa/test --format json` 识别 264 个测试回调，其中 219 个为 `node-test`，没有产生 `UT001`；修正原生断言参数顺序后静态汇总为 1 个 `FAKE`、40 个 `WEAK`、223 个 `UNASSESSED`。这只证明当前源码模式被正确提取和评估，不代表 dsh-qa 的运行时质量、覆盖率、mutation 或业务验收。
+
+## 2026-09-27 报告发现项卡片样式修正
+
+Impeccable detector 指出离线 HTML 报告的 finding 卡片使用 4px 左侧彩色边框，形成典型 side-tab 视觉。该反馈判定为真实设计问题，已改为 1px 中性全边框，`FAKE` 仅使用较暗的边框色；没有新增 ignore 或压制规则。报告数据、分类、发现项、FTR、Trust Score 和交互行为保持不变。
+
+验证：`tests/reporters.test.ts` 的 22 个测试、lint、typecheck、`git diff --check`、本次变更文件的 Prettier 检查均通过；手动 detector 对 `src/reporters.ts` 返回空结果。
+
+## 2026-09-27 Node 原生断言绑定误报修复
+
+审查发现：`node:assert` 的具名 import 或别名虽然是有效断言，却因回调源码不包含文件级 import 而被 `UT001` 判为 `FAKE`。修复将静态 `node:assert` 绑定作为可选 `TestCase` 元数据传入规则；它只记录 ESM 的 default、namespace 和具名绑定，不做模块解析或执行。封装和间接 helper 仍不被推断，旧的直接 `assert(...)` 与 `assert.method(...)` 识别保持不变。
+
+验证链：先增加真实 extractor → rule-engine 回归并观察到 RED，随后最小实现后聚焦测试 GREEN；`npm test` 通过 23 个测试文件、245 个测试，lint、typecheck、build、benchmark（3/3）、`git diff --check` 和本次变更文件的 Prettier 检查均通过。完整 `npm run format:check` 仍只被既有未跟踪的 `.impeccable/hook.cache.json` 阻断。构建后的 dsh-qa 审计没有产生 `UT001`；这些结果只证明源码模式识别，不代表运行时质量或业务验收。

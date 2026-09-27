@@ -8,21 +8,21 @@
 
 发现项均是局部、语法级、高置信度的模式证据。信息说明观察到的模式，不证明整个测试或应用必然有缺陷；修复建议应作为人工审查的起点。
 
-| ID        | 分类    | 严重性   | 确定性触发条件                                                            | 不证明                                       |
-| --------- | ------- | -------- | ------------------------------------------------------------------------- | -------------------------------------------- |
-| UT001     | FAKE    | CRITICAL | Unit/Jest/Vitest 回调没有 `expect(...)`。                                 | 没有断言的测试在其他机制下永远无价值。       |
-| UT002     | FAKE    | CRITICAL | `expect` 比较相同基本字面量。                                             | 每个常量断言在完整套件中都无帮助。           |
-| UT003     | FAKE    | CRITICAL | actual 与 expected 的 TypeScript AST 结构文本完全相同，且保留字面量内容。 | 写法不同但语义等价的表达式就是安全的。       |
-| UT008     | FAKE    | CRITICAL | `catch` 为空，或只向 `console` 日志。                                     | 任何有额外操作的 catch 都正确处理了错误。    |
-| UT011     | FAKE    | CRITICAL | 断言两侧调用相同 callee，且参数结构完全相同。                             | 每个双调用比较在所有上下文中都无效。         |
-| UT004     | WEAK    | WARNING  | 所有直接断言都只使用无参数 `toBeDefined` 或 `toBeTruthy`。                | 存在性或真值永远不是预期的单元契约。         |
-| API001    | WEAK    | WARNING  | 所有识别到的断言只检查 `response.status` / `statusCode`。                 | 状态码断言对该接口一定不充分。               |
-| API002    | WEAK    | WARNING  | 所有直接断言都只用存在性 matcher 检查 `response.body` / `response.data`。 | body/data 存在性一定不足以验证接口。         |
-| E2E001    | FAKE    | CRITICAL | Playwright 回调没有识别到 `expect`。                                      | 仅动作的 journey 不能用于准备或探索。        |
-| E2E002    | WEAK    | WARNING  | 所有 Playwright 断言都使用 `toHaveURL`。                                  | 只检查 URL 永远不能作为充分的 journey 结果。 |
-| E2E003    | WEAK    | WARNING  | 所有直接断言都使用无参数 `toBeVisible`。                                  | 可见性永远不是预期的 journey 结果。          |
-| E2E004    | WEAK    | WARNING  | `page.waitForTimeout` 使用数值字面量。                                    | 每个固定等待都可避免。                       |
-| PARSER001 | INVALID | WARNING  | TypeScript 为选中的测试文件报告源码 parser 诊断。                         | 测试在框架运行时一定失败或无效。             |
+| ID        | 分类    | 严重性   | 确定性触发条件                                                                                    | 不证明                                       |
+| --------- | ------- | -------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| UT001     | FAKE    | CRITICAL | Unit/Jest/Vitest/Node `node:test` 回调没有可识别的 `expect(...)` 或 Node `assert`。               | 没有断言的测试在其他机制下永远无价值。       |
+| UT002     | FAKE    | CRITICAL | `expect` 或 Node 原生比较断言比较相同基本字面量。                                                 | 每个常量断言在完整套件中都无帮助。           |
+| UT003     | FAKE    | CRITICAL | 可识别 matcher 或 Node 原生比较断言的 actual 与 expected 具有完全相同的 TypeScript AST 结构文本。 | 写法不同但语义等价的表达式就是安全的。       |
+| UT008     | FAKE    | CRITICAL | `catch` 为空，或只向 `console` 日志。                                                             | 任何有额外操作的 catch 都正确处理了错误。    |
+| UT011     | FAKE    | CRITICAL | matcher 或 Node 原生比较断言两侧调用相同 callee，且参数结构完全相同。                             | 每个双调用比较在所有上下文中都无效。         |
+| UT004     | WEAK    | WARNING  | 所有直接断言都只使用无参数 `toBeDefined` 或 `toBeTruthy`。                                        | 存在性或真值永远不是预期的单元契约。         |
+| API001    | WEAK    | WARNING  | 所有识别到的断言只检查 `response.status` / `statusCode`。                                         | 状态码断言对该接口一定不充分。               |
+| API002    | WEAK    | WARNING  | 所有直接断言都只用存在性 matcher 检查 `response.body` / `response.data`。                         | body/data 存在性一定不足以验证接口。         |
+| E2E001    | FAKE    | CRITICAL | Playwright 回调没有识别到 `expect`。                                                              | 仅动作的 journey 不能用于准备或探索。        |
+| E2E002    | WEAK    | WARNING  | 所有 Playwright 断言都使用 `toHaveURL`。                                                          | 只检查 URL 永远不能作为充分的 journey 结果。 |
+| E2E003    | WEAK    | WARNING  | 所有直接断言都使用无参数 `toBeVisible`。                                                          | 可见性永远不是预期的 journey 结果。          |
+| E2E004    | WEAK    | WARNING  | `page.waitForTimeout` 使用数值字面量。                                                            | 每个固定等待都可避免。                       |
+| PARSER001 | INVALID | WARNING  | TypeScript 为选中的测试文件报告源码 parser 诊断。                                                 | 测试在框架运行时一定失败或无效。             |
 
 | UT012 | FAKE | CRITICAL | 回调包含没有 matcher 的裸 `expect(...)` 调用。 | 回调没有其他有用副作用。 |
 | UT013 | FAKE | CRITICAL | `expect.assertions(0)` 与实际 matcher 断言同时出现。 | 每个断言计数保护都不正确。 |
@@ -49,6 +49,7 @@
 - `API001` 和 `E2E002` 要求有限断言是所有已识别断言的唯一目标。
 - `E2E004` 只命中数值字面量；变量不命中。
 - `UT004`、`API002`、`E2E003` 要求每个直接断言都符合狭窄的无参数 matcher；修饰符、裸 expect 和混合断言会抑制提示。
+- Node `node:test` 的断言识别仅限直接 `assert(...)`、`assert.method(...)` 以及 `node:assert` 中可静态声明的绑定；封装和间接 helper 仍保持 `UNASSESSED`。
 - `PARSER001` 仅报告源码语法，不执行、解析依赖或验证运行时类型。
 - 未命中的测试刻意保持为 `UNASSESSED`。
 - v1.2 规则只使用有边界的源码形式；转换后的值、稳定 selector、重新抛出、已 await 调用、`Promise.all` 和混合有效断言是代表性不可触发样例。

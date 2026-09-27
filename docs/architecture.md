@@ -62,7 +62,7 @@ flowchart LR
 
 ## Data contracts
 
-`TestCase` preserves test name, file, framework, type, start line, callback source, and body. `Finding` preserves a stable ID, classification, severity, confidence, location, message, and remediation. An optional `MutationReport` preserves its engine label, recorded command, threshold and source, counts, score, and derived threshold status. An optional `PolicyEvaluation` preserves the advisory policy identity, disabled rule IDs, and disabled/active finding counts. `AuditResult` is the only reporter input and JSON output.
+`TestCase` preserves test name, file, framework, type, start line, callback source, and body. Node test cases may also preserve statically declared `node:assert` bindings so direct named imports and namespace aliases can be recognized without module resolution or execution. `Finding` preserves a stable ID, classification, severity, confidence, location, message, and remediation. An optional `MutationReport` preserves its engine label, recorded command, threshold and source, counts, score, and derived threshold status. An optional `PolicyEvaluation` preserves the advisory policy identity, disabled rule IDs, and disabled/active finding counts. `AuditResult` is the only reporter input and JSON output.
 
 ## Score model
 

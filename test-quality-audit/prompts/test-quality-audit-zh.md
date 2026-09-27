@@ -10,7 +10,7 @@
 
 ```text
 <test_context>
-framework: <jest|vitest|playwright|unknown>
+framework: <jest|vitest|playwright|node-test|unknown>
 test_type: <unit|api|e2e|unknown>
 source: <粘贴源码>
 optional_cli_report: <粘贴 JSON 或文本输出>

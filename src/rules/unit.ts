@@ -11,6 +11,7 @@ import {
   isSimpleLiteral,
   isUnitTest,
   literalKey,
+  nativeAssertionCalls,
   sourceFileFor,
   structuralText,
   structurallyIdenticalArguments,
@@ -28,9 +29,18 @@ export function evaluateUnitRules(testCase: TestCase): Finding[] {
 
   const sourceFile = sourceFileFor(testCase);
   const findings: Finding[] = [];
-  const testAssertions = assertions(sourceFile);
+  const nativeBindings = testCase.nativeAssertionBindings ?? [];
+  const testAssertions = assertions(
+    sourceFile,
+    testCase.framework,
+    nativeBindings,
+  );
 
-  if (expectCalls(sourceFile).length === 0) {
+  if (
+    expectCalls(sourceFile).length === 0 &&
+    nativeAssertionCalls(sourceFile, testCase.framework, nativeBindings)
+      .length === 0
+  ) {
     findings.push(
       finding(
         testCase,
@@ -40,7 +50,7 @@ export function evaluateUnitRules(testCase: TestCase): Finding[] {
         'CRITICAL',
         'HIGH',
         fakeMessage(
-          'UT001 found no Jest, Vitest, or Playwright expect call in this test.',
+          'UT001 found no recognized expect or Node native assert call in this test.',
         ),
         fakeRemediation(
           'Add an assertion for an observable behavior or side effect.',
@@ -94,13 +104,18 @@ export function evaluateUnitRules(testCase: TestCase): Finding[] {
   }
 
   if (
-    hasOnlyMatchers(sourceFile, [
-      'toHaveBeenCalled',
-      'toHaveBeenCalledTimes',
-      'toHaveBeenCalledWith',
-      'toHaveBeenLastCalledWith',
-      'toHaveBeenNthCalledWith',
-    ])
+    hasOnlyMatchers(
+      sourceFile,
+      [
+        'toHaveBeenCalled',
+        'toHaveBeenCalledTimes',
+        'toHaveBeenCalledWith',
+        'toHaveBeenLastCalledWith',
+        'toHaveBeenNthCalledWith',
+      ],
+      testCase.framework,
+      nativeBindings,
+    )
   ) {
     findings.push(
       finding(
@@ -121,7 +136,12 @@ export function evaluateUnitRules(testCase: TestCase): Finding[] {
   }
 
   if (
-    hasOnlyMatchers(sourceFile, ['toMatchSnapshot', 'toMatchInlineSnapshot'])
+    hasOnlyMatchers(
+      sourceFile,
+      ['toMatchSnapshot', 'toMatchInlineSnapshot'],
+      testCase.framework,
+      nativeBindings,
+    )
   ) {
     findings.push(
       finding(
@@ -141,7 +161,15 @@ export function evaluateUnitRules(testCase: TestCase): Finding[] {
     );
   }
 
-  if (hasOnlyZeroArgumentMatchers(sourceFile, ['toBeDefined', 'toBeTruthy'])) {
+  if (
+    hasOnlyZeroArgumentMatchers(
+      sourceFile,
+      ['toBeDefined', 'toBeTruthy'],
+      () => true,
+      testCase.framework,
+      nativeBindings,
+    )
+  ) {
     findings.push(
       finding(
         testCase,
@@ -159,7 +187,7 @@ export function evaluateUnitRules(testCase: TestCase): Finding[] {
   }
 
   for (const assertion of testAssertions) {
-    const expected = assertion.matcher.arguments[0];
+    const expected = assertion.expected;
     if (
       expected &&
       isSimpleLiteral(assertion.actual) &&
